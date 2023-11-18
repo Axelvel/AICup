@@ -45,7 +45,7 @@ def create_labels_dict(path):
     return labels
 
 
-train_labels_dict = import_data(LABELS_PATH)
+train_labels_dict = create_labels_dict(LABELS_PATH)
 
 labels_type = list(set( [label[0] for labels in train_labels_dict.values() for label in labels] ))
 labels_type = ["OTHER"] + labels_type
