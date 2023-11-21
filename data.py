@@ -24,8 +24,6 @@ def retrieveData(path):
     return dataset
 
 data = retrieveData(FIRST_DATASET_PATH)
-print(data)
-
 
 # Creating label dict
 
@@ -50,3 +48,32 @@ train_labels_dict = create_labels_dict(LABELS_PATH)
 labels_type = list(set( [label[0] for labels in train_labels_dict.values() for label in labels] ))
 labels_type = ["OTHER"] + labels_type
 labels_num = len(labels_type)
+
+# ------------------------------ DATA PROCESSING ----------------------------- #
+
+#MIGHT DELETE THIS LATER BC WE HAVE A LOT OF NAME AND DATE AND THAT MAY CREATE TROUBLE
+def tokenize_and_preserve_labels(sentence, text_labels, tokenizer):
+    """
+    This will take each word one by one (to preserve  the correct 
+    label) and create token of it
+    This is not mandatory.
+    """
+
+    tokenized_sentence = []
+    labels = []
+
+    sentence = sentence.strip()
+
+    for word, label in zip(sentence.split(), text_labels.split(",")):
+
+        # Tokenize the word and count # of subwords the word is broken into
+        tokenized_word = tokenizer.tokenize(word)
+        n_subwords = len(tokenized_word)
+
+        # Add the tokenized word to the final tokenized word list
+        tokenized_sentence.extend(tokenized_word)
+
+        # Add the same label to the new list of labels `n_subwords` times
+        labels.extend([label] * n_subwords)
+
+    return tokenized_sentence, labels
