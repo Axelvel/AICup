@@ -7,23 +7,37 @@ LABELS_PATH = 'dataset/First_Phase_Release(Correction)/answer.txt'
 
 
 # ------------------------------ RETRIEVING DATA ----------------------------- #
-def retrieveData(path):
+def retrieveData(path, dict):
     list_file = listdir(path)
-    dataset = ["[CLS]"]
+    items = ["[CLS]"]
+    labels = ["[CLS]"]
+
 
     for file in list_file:
+        raw_data = dict[file[:-4]]
         with open(path + file) as f:
             lines = f.readlines()
         for line in lines:
             if line != "\n":
                 splitted = line.split()
                 for word in splitted:
-                    dataset.append(word)
-        dataset.append("[SEP]")
-    
-    return dataset
+                    items.append(word)
 
-data = retrieveData(FIRST_DATASET_PATH)
+                    check = False
+                    test = len(labels)
+                    for list in raw_data:
+                        if word in list and word != list[0] and check == False:
+                            labels.append(list[0])
+                            check = True
+                    if check == False:
+                        labels.append("OTHER")
+
+        items.append("[SEP]")
+        labels.append("[SEP]")
+    
+    return items,labels
+
+
 
 # Creating label dict
 
@@ -48,6 +62,9 @@ train_labels_dict = create_labels_dict(LABELS_PATH)
 labels_type = list(set( [label[0] for labels in train_labels_dict.values() for label in labels] ))
 labels_type = ["OTHER"] + labels_type
 labels_num = len(labels_type)
+
+data,labels = retrieveData(FIRST_DATASET_PATH,train_labels_dict)
+
 
 # ------------------------------ DATA PROCESSING ----------------------------- #
 

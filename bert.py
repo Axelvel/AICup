@@ -23,4 +23,3 @@ LABELS_PATH = 'dataset/First_Phase_Release(Correction)/answer.txt'
 
 first_phase_data = data.retrieveData(FIRST_DATASET_PATH)
 train_labels_dict = data.create_labels_dict(LABELS_PATH)
-
