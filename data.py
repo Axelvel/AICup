@@ -1,4 +1,5 @@
 from os import listdir
+from transformers import BertTokenizer, BertConfig, BertForTokenClassification
 
 # --------------------------------- CONSTANTS -------------------------------- #
 
@@ -64,12 +65,14 @@ labels_type = ["OTHER"] + labels_type
 labels_num = len(labels_type)
 
 data,labels = retrieveData(FIRST_DATASET_PATH,train_labels_dict)
+print(len(data))
+print(len(labels))
 
 
 # ------------------------------ DATA PROCESSING ----------------------------- #
 
 #MIGHT DELETE THIS LATER BC WE HAVE A LOT OF NAME AND DATE AND THAT MAY CREATE TROUBLE
-def tokenize_and_preserve_labels(sentence, text_labels, tokenizer):
+def tokenize_and_preserve_labels(sentence, labels, tokenizer):
     """
     This will take each word one by one (to preserve  the correct 
     label) and create token of it
@@ -77,20 +80,26 @@ def tokenize_and_preserve_labels(sentence, text_labels, tokenizer):
     """
 
     tokenized_sentence = []
-    labels = []
+    tokenized_labels = []
 
-    sentence = sentence.strip()
+    for word, label in zip(sentence, labels):
 
-    for word, label in zip(sentence.split(), text_labels.split(",")):
+        if word == "[CLS]" or word == "[SEP]" or any(letter.isdigit() for letter in word):
+            tokenized_sentence.append(word)
+            tokenized_labels.append(label)
 
-        # Tokenize the word and count # of subwords the word is broken into
-        tokenized_word = tokenizer.tokenize(word)
-        n_subwords = len(tokenized_word)
+        else:
 
-        # Add the tokenized word to the final tokenized word list
-        tokenized_sentence.extend(tokenized_word)
+            # Tokenize the word and count # of subwords the word is broken into
+            tokenized_word = tokenizer.tokenize(word)
+            n_subwords = len(tokenized_word)
 
-        # Add the same label to the new list of labels `n_subwords` times
-        labels.extend([label] * n_subwords)
+            # Add the tokenized word to the final tokenized word list
+            tokenized_sentence.extend(tokenized_word)
 
-    return tokenized_sentence, labels
+            # Add the same label to the new list of labels `n_subwords` times
+            tokenized_labels.extend([label] * n_subwords)
+
+    return tokenized_sentence, tokenized_labels
+
+tk_data,tk_labels = tokenize_and_preserve_labels(data, labels, BertTokenizer.from_pretrained('bert-base-uncased'))
