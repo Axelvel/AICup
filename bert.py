@@ -2,6 +2,7 @@ import pandas as pd
 import numpy as np
 import data
 from sklearn.metrics import accuracy_score
+from transformers import pipeline
 import torch
 from torch.utils.data import Dataset, DataLoader
 from transformers import BertTokenizer, BertConfig, BertForTokenClassification
@@ -11,15 +12,21 @@ device = 'cuda' if cuda.is_available() else 'cpu'
 
 # --------------------------------- CONSTANTS -------------------------------- #
 
-TRAIN_BATCH_SIZE = 4
-VALID_BATCH_SIZE = 2
-EPOCHS = 1
-LEARNING_RATE = 1e-05
-MAX_GRAD_NORM = 10
+EPOCHS = 20
+LEARNING_RATE = 0.001
+
 tokenizer = BertTokenizer.from_pretrained('bert-base-uncased')
 
-FIRST_DATASET_PATH = 'dataset/First_Phase_Release(Correction)/First_Phase_Text_Dataset/'
-LABELS_PATH = 'dataset/First_Phase_Release(Correction)/answer.txt'
+model = BertForTokenClassification.from_pretrained('bert-base-uncased', 
+                                                   num_labels=len(data.id2label),
+                                                   id2label=data.id2label,
+                                                   label2id=data.label2id)
+model.to(device)
 
-first_phase_data = data.retrieveData(FIRST_DATASET_PATH)
-train_labels_dict = data.create_labels_dict(LABELS_PATH)
+optimizer = torch.optim.Adam(params=model.parameters(), lr=LEARNING_RATE)
+
+nlp = pipeline("ner", model=model, tokenizer=tokenizer)
+example = "My name is Wolfgang and I live in Berlin"
+
+ner_results = nlp(example)
+print(ner_results)

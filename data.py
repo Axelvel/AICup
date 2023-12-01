@@ -71,8 +71,6 @@ data,labels = retrieveData(FIRST_DATASET_PATH,train_labels_dict)
 label2id = {k: v for v, k in enumerate(list(set(labels)))}
 id2label = {v: k for v, k in enumerate(list(set(labels)))}
 
-print(label2id)
-
 
 
 # ------------------------------ DATA PROCESSING ----------------------------- #
@@ -142,3 +140,4 @@ params = {
 }
 
 loader = DataLoader(dataset(tensor_data,tensor_labels),**params)
+
