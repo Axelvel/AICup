@@ -3,6 +3,7 @@ import torch
 from os import listdir
 from torch.utils.data import Dataset, DataLoader
 from transformers import BertTokenizer, BertConfig, BertForTokenClassification
+from torch.nn.utils.rnn import pad_sequence
 
 # --------------------------------- CONSTANTS -------------------------------- #
 
@@ -16,8 +17,6 @@ def retrieveData(path, dict):
     list_file = listdir(path)
     items = []
     labels = []
-
-
     for file in list_file:
         file_items = ["[CLS]"]
         file_labels = ["[CLS]"]
@@ -41,13 +40,7 @@ def retrieveData(path, dict):
                 file_labels.append("[SEP]")
         items.append(file_items)
         labels.append(file_labels)
-    print(len(items))
-    print(len(labels))
-    print(len(items[0]))
-    print(len(labels[0]))
     return items,labels
-
-
 
 # Creating label dict
 
@@ -75,8 +68,13 @@ def get_labels_types(path):
 labels_types, train_labels_dict = get_labels_types(LABELS_PATH)
 
 data,labels = retrieveData(FIRST_DATASET_PATH,train_labels_dict)
-label2id = {k: v for v, k in enumerate(list(set(labels)))}
-id2label = {v: k for v, k in enumerate(list(set(labels)))}
+
+flat_label = []
+for file in labels:
+    for word in file:
+        flat_label.append(word)
+label2id = {k: v for v, k in enumerate(list(set(flat_label)))}
+id2label = {v: k for v, k in enumerate(list(set(flat_label)))}
 
 
 # ------------------------------ DATA PROCESSING ----------------------------- #
@@ -132,11 +130,17 @@ class dataset(Dataset):
 
 # ------------------------- TRANSFORM DATA TO TENSOR ------------------------- #
 
-id_data = BertTokenizer.from_pretrained('bert-base-uncased').convert_tokens_to_ids(tk_data)
-id_labels = [label2id[label] for label in tk_labels]
+full_tk_data=[]
+full_tk_label = []
+for file_tk_data,file_tk_labels in zip(tk_data,tk_labels):
+    full_tk_data.append(BertTokenizer.from_pretrained('bert-base-uncased').convert_tokens_to_ids(file_tk_data))
+    full_tk_label.append([label2id[label] for label in file_tk_labels])
 
-tensor_data = torch.tensor(id_data,dtype=torch.long)
-tensor_labels = torch.tensor(id_labels,dtype=torch.long)
+padded_data = pad_sequence([torch.tensor(seq) for seq in full_tk_data], batch_first=True)
+tensor_data = padded_data.type(torch.long)
+
+padded_labels = pad_sequence([torch.tensor(seq) for seq in full_tk_label], batch_first=True)
+tensor_labels = padded_labels.type(torch.long)
 
 params = {
     "batch_size": BATCH_SIZE,
