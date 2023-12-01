@@ -47,21 +47,24 @@ def retrieveData(path, dict):
 
 def create_labels_dict(path):
     labels = {}
-    with open(LABELS_PATH, mode='r') as f:
+    with open(path, mode='r', encoding='utf-8') as f:
         # Cleaning up the file
         text = f.read()
         text = text.strip("\ufeff").strip()
     for line in text.split('\n'):
         sample = line.split('\t')
-        sample[2], sample[3] = (int(sample[2]), int(sample[3])) # Converting 'start' and 'end' to int
-        if sample[0] not in labels.keys(): # Create key if not in dict
+        sample[2], sample[3] = (int(sample[2]), int(sample[3]))  # Converting 'start' and 'end' to int
+        if sample[0] not in labels.keys():  # Create key if not in dict
             labels[sample[0]] = [sample[1:]]
         else:
-            labels[sample[0]].append(sample[1:]) # Append if key already exists
+            labels[sample[0]].append(sample[1:])  # Append if key already exists
     return labels
 
-
-train_labels_dict = create_labels_dict(LABELS_PATH)
+def get_labels_types(path):
+    labels_dict = create_labels_dict(path)
+    labels_types = list(set([label[0] for labels in labels_dict.values() for label in labels]))
+    labels_types = ["OTHER"] + labels_types
+    return labels_types
 
 labels_type = list(set( [label[0] for labels in train_labels_dict.values() for label in labels] ))
 labels_type = ["OTHER"] + labels_type
