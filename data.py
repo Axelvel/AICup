@@ -14,11 +14,13 @@ BATCH_SIZE = 62
 # ------------------------------ RETRIEVING DATA ----------------------------- #
 def retrieveData(path, dict):
     list_file = listdir(path)
-    items = ["[CLS]"]
-    labels = ["[CLS]"]
+    items = []
+    labels = []
 
 
     for file in list_file:
+        file_items = ["[CLS]"]
+        file_labels = ["[CLS]"]
         raw_data = dict[file[:-4]]
         with open(path + file) as f:
             lines = f.readlines()
@@ -26,19 +28,23 @@ def retrieveData(path, dict):
             if line != "\n":
                 splitted = line.split()
                 for word in splitted:
-                    items.append(word)
+                    file_items.append(word)
 
                     check = False
                     for list in raw_data:
                         if word in list and word != list[0] and check == False:
-                            labels.append(list[0])
+                            file_labels.append(list[0])
                             check = True
                     if check == False:
-                        labels.append("OTHER")
-
-        items.append("[SEP]")
-        labels.append("[SEP]")
-    
+                        file_labels.append("OTHER")
+                file_items.append("[SEP]")
+                file_labels.append("[SEP]")
+        items.append(file_items)
+        labels.append(file_labels)
+    print(len(items))
+    print(len(labels))
+    print(len(items[0]))
+    print(len(labels[0]))
     return items,labels
 
 
@@ -64,18 +70,13 @@ def get_labels_types(path):
     labels_dict = create_labels_dict(path)
     labels_types = list(set([label[0] for labels in labels_dict.values() for label in labels]))
     labels_types = ["OTHER"] + labels_types
-    return labels_types
+    return labels_types,labels_dict
 
-labels_type = list(set( [label[0] for labels in train_labels_dict.values() for label in labels] ))
-labels_type = ["OTHER"] + labels_type
-labels_num = len(labels_type)
+labels_types, train_labels_dict = get_labels_types(LABELS_PATH)
 
 data,labels = retrieveData(FIRST_DATASET_PATH,train_labels_dict)
 label2id = {k: v for v, k in enumerate(list(set(labels)))}
 id2label = {v: k for v, k in enumerate(list(set(labels)))}
-
-print(label2id)
-
 
 
 # ------------------------------ DATA PROCESSING ----------------------------- #
@@ -83,8 +84,7 @@ print(label2id)
 #MIGHT DELETE THIS LATER BC WE HAVE A LOT OF NAME AND DATE AND THAT MAY CREATE TROUBLE
 def tokenize_and_preserve_labels(sentence, labels, tokenizer):
     """
-    This will take each word one by one (to preserve  the correct 
-    label) and create token of it
+    This will take each word one by one (to preserve  the correct label) and create token of it
     This is not mandatory.
     """
 

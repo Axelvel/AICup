@@ -6,7 +6,7 @@ from model import PrivacyModel
 from data import get_labels_types
 
 LABELS_PATH = 'dataset/First_Phase_Release(Correction)/answer.txt'
-label_types = get_labels_types(LABELS_PATH)
+label_types,_ = get_labels_types(LABELS_PATH)
 num_labels = len(label_types)
 
 # Hyperparameters
