@@ -11,7 +11,7 @@ class PrivacyModel(nn.Module):
 
     def __init__(self, output_size) -> None:
         super(PrivacyModel, self).__init__()
-        
+
         self.bert_output_size = 768
         self.output_size = output_size
 
@@ -20,7 +20,7 @@ class PrivacyModel(nn.Module):
         self.fc = nn.Linear(self.bert_output_size, self.output_size)
 
     def forward(self, x):
-        self.bert(x)
-        self.dropout(x)
-        self.fc(x)
+        x = self.bert(x, return_dict=True)  #TODO: Add attention mask
+        x = self.dropout(x)
+        x = self.fc(x)
         return x

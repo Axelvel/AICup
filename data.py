@@ -4,13 +4,15 @@ from os import listdir
 from torch.utils.data import Dataset, DataLoader
 from transformers import BertTokenizer, BertConfig, BertForTokenClassification
 from torch.nn.utils.rnn import pad_sequence
+import joblib
 
 # --------------------------------- CONSTANTS -------------------------------- #
 
 FIRST_DATASET_PATH = 'dataset/First_Phase_Release(Correction)/First_Phase_Text_Dataset/'
 LABELS_PATH = 'dataset/First_Phase_Release(Correction)/answer.txt'
 
-BATCH_SIZE = 62
+BATCH_SIZE = 64
+
 
 # ------------------------------ RETRIEVING DATA ----------------------------- #
 def retrieveData(path, dict):
@@ -98,7 +100,7 @@ def tokenize_and_preserve_labels(sentence, labels, tokenizer):
         else:
 
             # Tokenize the word and count # of subwords the word is broken into
-            tokenized_word = tokenizer.tokenize(word)
+            tokenized_word = tokenizer.tokenize(word) #TODO: Add padding?
             n_subwords = len(tokenized_word)
 
             # Add the tokenized word to the final tokenized word list
@@ -113,19 +115,23 @@ tk_data,tk_labels = tokenize_and_preserve_labels(data, labels, BertTokenizer.fro
 
 # ------------------------------ DATASET OBJECT ------------------------------ #
 class dataset(Dataset):
-    def __init__(self,data,target):
+    def __init__(self, data, target):
         self.data = data
         self.target = target
         self.len = len(data)
 
-    def __getitem__(self, index):
+    def __getitem__(self, index: int):
         return {
-            "ids": self.data,
-            "targets": self.target
+            "ids": self.data[index],
+            "targets": self.target[index]
         }
     
     def __len__(self):
         return self.len
+    
+    #TODO: Add collate function
+    def collate_fn(self, items: list):
+        pass
     
 
 # ------------------------- TRANSFORM DATA TO TENSOR ------------------------- #
@@ -149,3 +155,8 @@ params = {
 }
 
 loader = DataLoader(dataset(tensor_data,tensor_labels),**params)
+joblib.dump(loader, 'loader.plk')
+
+
+if __name__ == "__main__":
+    pass

@@ -7,7 +7,7 @@ from torch.utils.data import Dataset, DataLoader
 from transformers import BertTokenizer, BertConfig, BertForTokenClassification
 
 from torch import cuda
-device = 'cuda' if cuda.is_available() else 'cpu'
+device = 'mps' if torch.backends.mps.is_available() else 'cuda' if cuda.is_available() else 'cpu'
 
 # --------------------------------- CONSTANTS -------------------------------- #
 
