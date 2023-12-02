@@ -14,7 +14,6 @@ LABELS_PATH = 'dataset/First_Phase_Release(Correction)/answer.txt'
 
 BATCH_SIZE = 64
 
-
 # ------------------------------ RETRIEVING DATA ----------------------------- #
 def retrieveData(path, dict):
     list_file = listdir(path)
@@ -113,7 +112,25 @@ def tokenize_and_preserve_labels(sentence, labels, tokenizer):
     return tokenized_sentence, tokenized_labels
 
 tk_data,tk_labels = tokenize_and_preserve_labels(data, labels, BertTokenizer.from_pretrained('bert-base-uncased'))
-    
+
+MAX_SEQ_LENGTH = 512
+
+# Split sequences longer than 512 tokens
+def truncate_sequences(data, labels, max_seq_length):
+    truncated_data = []
+    truncated_labels = []
+
+    for seq, label_seq in zip(data, labels):
+        if len(seq) <= max_seq_length:
+            truncated_data.append(seq)
+            truncated_labels.append(label_seq)
+        else:
+            for i in range(0, len(seq), max_seq_length):
+                end_idx = min(i + max_seq_length, len(seq))
+                truncated_data.append(seq[i:end_idx])
+                truncated_labels.append(label_seq[i:end_idx])
+
+    return truncated_data, truncated_labels
 
 # ------------------------- TRANSFORM DATA TO TENSOR ------------------------- #
 
@@ -122,9 +139,14 @@ full_tk_label = []
 for file_tk_data,file_tk_labels in zip(tk_data,tk_labels):
     full_tk_data.append(BertTokenizer.from_pretrained('bert-base-uncased').convert_tokens_to_ids(file_tk_data))
     full_tk_label.append([label2id[label] for label in file_tk_labels])
-
+    
+truncated_data, truncated_labels = truncate_sequences(full_tk_data, full_tk_label, MAX_SEQ_LENGTH)
+full_tk_data, full_tk_label = truncated_data, truncated_labels
 padded_data = pad_sequence([torch.tensor(seq) for seq in full_tk_data], batch_first=True)
 tensor_data = padded_data.type(torch.long)
+print('Padded:', padded_data)
+print('Tensor:', tensor_data)
+print('Shape:', tensor_data.shape)
 
 padded_labels = pad_sequence([torch.tensor(seq) for seq in full_tk_label], batch_first=True)
 tensor_labels = padded_labels.type(torch.long)
