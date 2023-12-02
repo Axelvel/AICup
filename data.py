@@ -13,6 +13,8 @@ FIRST_DATASET_PATH = 'dataset/First_Phase_Release(Correction)/First_Phase_Text_D
 LABELS_PATH = 'dataset/First_Phase_Release(Correction)/answer.txt'
 
 BATCH_SIZE = 64
+MAX_SEQ_LENGTH = 512
+
 
 # ------------------------------ RETRIEVING DATA ----------------------------- #
 def retrieveData(path, dict):
@@ -65,18 +67,7 @@ def get_labels_types(path):
     labels_dict = create_labels_dict(path)
     labels_types = list(set([label[0] for labels in labels_dict.values() for label in labels]))
     labels_types = ["OTHER"] + labels_types
-    return labels_types,labels_dict
-
-labels_types, train_labels_dict = get_labels_types(LABELS_PATH)
-
-data,labels = retrieveData(FIRST_DATASET_PATH,train_labels_dict)
-
-flat_label = []
-for file in labels:
-    for word in file:
-        flat_label.append(word)
-label2id = {k: v for v, k in enumerate(list(set(flat_label)))}
-id2label = {v: k for v, k in enumerate(list(set(flat_label)))}
+    return labels_types, labels_dict
 
 
 # ------------------------------ DATA PROCESSING ----------------------------- #
@@ -100,7 +91,7 @@ def tokenize_and_preserve_labels(sentence, labels, tokenizer):
         else:
 
             # Tokenize the word and count # of subwords the word is broken into
-            tokenized_word = tokenizer.tokenize(word) #TODO: Add padding?
+            tokenized_word = tokenizer.tokenize(word)  #TODO: Add padding?
             n_subwords = len(tokenized_word)
 
             # Add the tokenized word to the final tokenized word list
@@ -110,10 +101,6 @@ def tokenize_and_preserve_labels(sentence, labels, tokenizer):
             tokenized_labels.extend([label] * n_subwords)
 
     return tokenized_sentence, tokenized_labels
-
-tk_data,tk_labels = tokenize_and_preserve_labels(data, labels, BertTokenizer.from_pretrained('bert-base-uncased'))
-
-MAX_SEQ_LENGTH = 512
 
 # Split sequences longer than 512 tokens
 def truncate_sequences(data, labels, max_seq_length):
@@ -132,35 +119,48 @@ def truncate_sequences(data, labels, max_seq_length):
 
     return truncated_data, truncated_labels
 
-# ------------------------- TRANSFORM DATA TO TENSOR ------------------------- #
-
-full_tk_data=[]
-full_tk_label = []
-for file_tk_data,file_tk_labels in zip(tk_data,tk_labels):
-    full_tk_data.append(BertTokenizer.from_pretrained('bert-base-uncased').convert_tokens_to_ids(file_tk_data))
-    full_tk_label.append([label2id[label] for label in file_tk_labels])
-    
-truncated_data, truncated_labels = truncate_sequences(full_tk_data, full_tk_label, MAX_SEQ_LENGTH)
-full_tk_data, full_tk_label = truncated_data, truncated_labels
-padded_data = pad_sequence([torch.tensor(seq) for seq in full_tk_data], batch_first=True)
-tensor_data = padded_data.type(torch.long)
-print('Padded:', padded_data)
-print('Tensor:', tensor_data)
-print('Shape:', tensor_data.shape)
-
-padded_labels = pad_sequence([torch.tensor(seq) for seq in full_tk_label], batch_first=True)
-tensor_labels = padded_labels.type(torch.long)
-
-params = {
-    "batch_size": BATCH_SIZE,
-    "shuffle": True,
-    "num_workers": 0
-}
-
-loader = DataLoader(dataset(tensor_data,tensor_labels),**params)
-joblib.dump(loader, 'loader.plk')
-joblib.dump(tensor_data,'tensor_data')
-joblib.dump(tensor_labels,'tensor_labels')
 
 if __name__ == "__main__":
-    pass
+    
+    labels_types, train_labels_dict = get_labels_types(LABELS_PATH)
+
+    data, labels = retrieveData(FIRST_DATASET_PATH,train_labels_dict)
+
+    flat_label = []
+    for file in labels:
+        for word in file:
+            flat_label.append(word)
+    label2id = {k: v for v, k in enumerate(list(set(flat_label)))}
+    id2label = {v: k for v, k in enumerate(list(set(flat_label)))}
+
+    tk_data, tk_labels = tokenize_and_preserve_labels(data, labels, BertTokenizer.from_pretrained('bert-base-uncased'))
+
+    # ------------------------- TRANSFORM DATA TO TENSOR ------------------------- #
+
+    full_tk_data = []
+    full_tk_label = []
+    for file_tk_data, file_tk_labels in zip(tk_data, tk_labels):
+        full_tk_data.append(BertTokenizer.from_pretrained('bert-base-uncased').convert_tokens_to_ids(file_tk_data))
+        full_tk_label.append([label2id[label] for label in file_tk_labels])
+
+    truncated_data, truncated_labels = truncate_sequences(full_tk_data, full_tk_label, MAX_SEQ_LENGTH)
+    padded_data = pad_sequence([torch.tensor(seq) for seq in truncated_data], batch_first=True)
+    tensor_data = padded_data.type(torch.long)
+    print('Padded:', padded_data)
+    print('Tensor:', tensor_data)
+    print('Shape:', tensor_data.shape)
+
+    padded_labels = pad_sequence([torch.tensor(seq) for seq in truncated_labels], batch_first=True)
+    tensor_labels = padded_labels.type(torch.long)
+
+    params = {
+        "batch_size": BATCH_SIZE,
+        "shuffle": True,
+        "num_workers": 0
+    }
+
+    loader = DataLoader(dataset(tensor_data, tensor_labels), **params)
+    joblib.dump(loader, 'loader.plk')
+    joblib.dump(tensor_data, 'tensor_data.plk')
+    joblib.dump(tensor_labels, 'tensor_labels.plk')
+
