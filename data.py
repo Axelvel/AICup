@@ -4,6 +4,7 @@ from os import listdir
 from torch.utils.data import Dataset, DataLoader
 from transformers import BertTokenizer, BertConfig, BertForTokenClassification
 from torch.nn.utils.rnn import pad_sequence
+from dataset import dataset
 import joblib
 
 # --------------------------------- CONSTANTS -------------------------------- #
@@ -112,26 +113,6 @@ def tokenize_and_preserve_labels(sentence, labels, tokenizer):
     return tokenized_sentence, tokenized_labels
 
 tk_data,tk_labels = tokenize_and_preserve_labels(data, labels, BertTokenizer.from_pretrained('bert-base-uncased'))
-
-# ------------------------------ DATASET OBJECT ------------------------------ #
-class dataset(Dataset):
-    def __init__(self, data, target):
-        self.data = data
-        self.target = target
-        self.len = len(data)
-
-    def __getitem__(self, index: int):
-        return {
-            "ids": self.data[index],
-            "targets": self.target[index]
-        }
-    
-    def __len__(self):
-        return self.len
-    
-    #TODO: Add collate function
-    def collate_fn(self, items: list):
-        pass
     
 
 # ------------------------- TRANSFORM DATA TO TENSOR ------------------------- #
@@ -156,7 +137,8 @@ params = {
 
 loader = DataLoader(dataset(tensor_data,tensor_labels),**params)
 joblib.dump(loader, 'loader.plk')
-
+joblib.dump(tensor_data,'tensor_data')
+joblib.dump(tensor_labels,'tensor_labels')
 
 if __name__ == "__main__":
     pass

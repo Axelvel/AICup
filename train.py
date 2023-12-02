@@ -3,12 +3,13 @@ import torch.nn as nn
 from torch.utils.data import TensorDataset, DataLoader
 import torch.optim as optim
 from model import PrivacyModel
-from data import get_labels_types
+#from data import get_labels_types
+from dataset import dataset
 import joblib
 
 LABELS_PATH = 'dataset/First_Phase_Release(Correction)/answer.txt'
-label_types,_ = get_labels_types(LABELS_PATH)
-num_labels = len(label_types)
+#label_types,_ = get_labels_types(LABELS_PATH)
+num_labels = 22# len(label_types)
 
 train_loader = joblib.load('loader.plk')
 print(train_loader)
@@ -30,9 +31,9 @@ for epoch in range(NUM_EPOCH):
     print(epoch)
     for batch in train_loader:
         inputs, labels = batch['ids'], batch['targets']
-        inputs = inputs.view(64, 1)
         print(inputs.shape)
         print(labels.shape)
+        #inputs = inputs.view(64, -1)
         optimizer.zero_grad()
         outputs = model(inputs)
         loss = criterion(outputs, labels)
