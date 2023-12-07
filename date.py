@@ -43,10 +43,7 @@ def collect_date(path):
                             while possible[-1].isdigit() == False:
                                 possible = possible[:-1]
                             if len(possible)==4 and int(possible)<2100 and int(possible)>1900:
-                                date.append("00-00-"+possible)
-                            
-                        elif "00" not in splitted[i] and "mm" not in splitted[i] and splitted[i][-4]!= ".":
-                            print(splitted[i])
+                                date.append("00-00-"+possible)      
                             
 
         if date != []:
@@ -54,5 +51,42 @@ def collect_date(path):
                 
     return file_date
 
-test = collect_date(FIRST_DATASET_PATH)
-#print(test)
+def trivial_date(date):
+    trivial = []
+    for file in date:
+        file_trivial = []
+        max_first = 0
+        max_second = 0
+        for item in file:
+            splitted = item.split("-")
+            if len(splitted)== 3 and splitted[0]!="" and splitted[1]!="" and splitted[2]!="":
+                if int(splitted[0])>max_first:
+                    max_first = int(splitted[0])
+                if int(splitted[1])>max_second:
+                    max_second = int(splitted[1])
+
+        if max_second>12 and max_first <= 12:
+            for item in file:
+                splitted = item.split("-")
+                if len(splitted)== 3 and splitted[0]!="" and splitted[1]!="" and splitted[2]!="":
+                    file_trivial.append(f"{splitted[1]}/{splitted[0]}/{splitted[2]}")
+            trivial.append(file_trivial)
+        
+        elif max_first>12 and max_second<=12:
+            for item in file:
+                splitted = item.split("-")
+                if len(splitted)== 3 and splitted[0]!="" and splitted[1]!="" and splitted[2]!="":
+                    file_trivial.append(f"{splitted[0]}/{splitted[1]}/{splitted[2]}")
+            trivial.append(file_trivial)
+        
+        else:
+            for item in file:
+                splitted = item.split("-")
+                if len(splitted)== 3 and splitted[0]!="" and splitted[1]!="" and splitted[2]!="":
+                    file_trivial.append(item)
+            trivial.append(file_trivial)
+
+    return trivial
+
+date = collect_date(FIRST_DATASET_PATH)
+print(trivial_date(date))

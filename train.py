@@ -15,7 +15,7 @@ print(num_labels)
 train_loader = joblib.load('loader.plk')
 
 # Hyperparameters
-# BATCH_SIZE = 16
+BATCH_SIZE = 8
 LEARNING_RATE = 0.01
 NUM_EPOCH = 10
 

@@ -11,7 +11,7 @@ device = 'mps' if torch.backends.mps.is_available() else 'cuda' if cuda.is_avail
 
 # --------------------------------- CONSTANTS -------------------------------- #
 
-TRAIN_BATCH_SIZE = 4
+TRAIN_BATCH_SIZE = 8
 VALID_BATCH_SIZE = 2
 EPOCHS = 1
 LEARNING_RATE = 1e-05
