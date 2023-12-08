@@ -100,5 +100,59 @@ def trivial_date(date):
 
     return trivial
 
+def month_assumption(date):
+    total_date = []
+    for file in date:
+        first = []
+        second = []
+        file_date = []
+
+        for item in file:
+            splitted = item.split("-")
+            if len(splitted) != 3:
+                continue
+            first.append(splitted[0])
+            second.append(splitted[1])
+        
+        max_first = 0
+        n_max_first = 0
+        max_second = 0
+        n_max_second = 0
+
+        for fnumber,snumber in zip(first,second):
+            if first.count(fnumber) > n_max_first:
+                n_max_first = first.count(fnumber)
+                max_first = fnumber
+            
+            if second.count(snumber) > n_max_second:
+                n_max_second = second.count(snumber)
+                max_second =snumber
+        
+        if n_max_first>n_max_second and n_max_first >1:
+            for item in file:
+                splitted = item.split("-")
+                file_date.append(f"{splitted[1]}/{splitted[0]}/{splitted[2]}")
+
+        elif n_max_first < n_max_second and n_max_second>1:
+            for item in file:
+                file_date.append(item.replace("-","/"))
+        
+        else:
+            for item in file:
+                file_date.append(item)
+        total_date.append(file_date)
+            
+            
+    return(total_date)
+            
+            
+
 date = collect_date(FIRST_DATASET_PATH)
-print(trivial_date(date))
+date = trivial_date(date)
+date = month_assumption(date)
+
+for file in date:
+    print("file")
+    for item in file:
+        if "/" not in item:
+            print(item)
