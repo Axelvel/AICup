@@ -1,10 +1,11 @@
 import torch
 from model import PrivacyModel
-from data import retrieveData, tokenize_and_preserve_labels, get_labels_types, pad_sequence, truncate_sequences
+from data import retrieveData, tokenize_and_preserve_labels, get_labels_types, truncate_sequences
+from torch.nn.utils.rnn import pad_sequence
 from transformers import BertTokenizer
 import joblib
 
-TOKENIZE_TEST_DATA = True
+TOKENIZE_TEST_DATA = False
 
 MAX_SEQ_LENGTH = 512
 
@@ -20,18 +21,16 @@ if TOKENIZE_TEST_DATA:
     labels_types, test_labels_dict = get_labels_types(LABELS_PATH)
     print('Retrieving Data')
     test_data, test_labels = retrieveData(VALIDATION_SET, test_labels_dict)
-    print('Tokenizing')
+    print('Tokenizing data')
     tk_test_data, tk_test_labels = tokenize_and_preserve_labels(test_data, test_labels, BertTokenizer.from_pretrained('bert-base-uncased'))
-    print('Full TK')
+    print('Bert Tokenizing')
     full_tk_data = []
     for file_tk_data in tk_test_data:
-        print(file_tk_data)
-        if len(file_tk_data) == 0:
-            print('EMPTY')
         full_tk_data.append(BertTokenizer.from_pretrained('bert-base-uncased').convert_tokens_to_ids(file_tk_data))
-    print('Truncating')
-    truncated_data, _ = truncate_sequences(full_tk_data, [], MAX_SEQ_LENGTH)
-    print('Padding')
+    print(full_tk_data)
+    print('Truncating data')
+    truncated_data, _ = truncate_sequences(full_tk_data, full_tk_data, MAX_SEQ_LENGTH)
+    print('Padding data')
     padded_data = pad_sequence([torch.tensor(seq) for seq in truncated_data], batch_first=True)
     tensor_test_data = padded_data.type(torch.long)
     print('Padded:', padded_data)
