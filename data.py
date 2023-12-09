@@ -12,7 +12,7 @@ import joblib
 FIRST_DATASET_PATH = 'dataset/First_Phase_Release(Correction)/First_Phase_Text_Dataset/'
 LABELS_PATH = 'dataset/First_Phase_Release(Correction)/answer.txt'
 
-BATCH_SIZE = 64
+BATCH_SIZE = 8
 MAX_SEQ_LENGTH = 512
 
 
@@ -124,7 +124,7 @@ if __name__ == "__main__":
     
     labels_types, train_labels_dict = get_labels_types(LABELS_PATH)
 
-    data, labels = retrieveData(FIRST_DATASET_PATH,train_labels_dict)
+    data, labels = retrieveData(FIRST_DATASET_PATH, train_labels_dict)
 
     flat_label = []
     for file in labels:
