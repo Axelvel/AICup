@@ -1,11 +1,8 @@
 import torch
 import torch.nn as nn
-from transformers import AutoTokenizer, AutoModel
-from torch.nn.utils.rnn import pack_padded_sequence
-
+from transformers import AutoModel
 
 model_name = "bert-base-uncased"
-tokenizer = AutoTokenizer.from_pretrained(model_name)
 
 
 class PrivacyModel(nn.Module):
@@ -21,8 +18,7 @@ class PrivacyModel(nn.Module):
         self.fc = nn.Linear(self.bert_output_size, self.output_size)
 
     def forward(self, x):
-        print(x.shape)
         x = self.bert(x, return_dict=True)  #TODO: Add attention mask
-        x = self.dropout(x)
-        x = self.fc(x)
+        x = self.dropout(x.last_hidden_state)
+        x = self.fc(x).view(-1, 512, self.output_size)
         return x
