@@ -146,8 +146,9 @@ if __name__ == "__main__":
     truncated_data, truncated_labels = truncate_sequences(full_tk_data, full_tk_label, MAX_SEQ_LENGTH)
     padded_data = pad_sequence([torch.tensor(seq) for seq in truncated_data], batch_first=True)
     tensor_data = padded_data.type(torch.long)
+    mask = (tensor_data != 0)
     print('Padded:', padded_data)
-    print('Tensor:', tensor_data)
+    #print('Tensor:', tensor_data)
     print('Shape:', tensor_data.shape)
 
     padded_labels = pad_sequence([torch.tensor(seq) for seq in truncated_labels], batch_first=True)
