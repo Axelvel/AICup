@@ -1,4 +1,5 @@
 import torch
+from torch.utils.data import TensorDataset, DataLoader
 from model import PrivacyModel
 from data import retrieveData, tokenize_and_preserve_labels, get_labels_types, truncate_sequences
 from torch.nn.utils.rnn import pad_sequence
@@ -9,8 +10,10 @@ TOKENIZE_TEST_DATA = False
 
 MAX_SEQ_LENGTH = 512
 
+device = 'mps' if torch.backends.mps.is_available() else 'cuda' if torch.cuda.is_available() else 'cpu'
+
 # Loading the model
-model = PrivacyModel(21)
+model = PrivacyModel(21).to(device)
 model.load_state_dict(torch.load('models/privacy-model.pt'))
 print(model)
 
@@ -40,7 +43,15 @@ if TOKENIZE_TEST_DATA:
     joblib.dump(tensor_test_data, 'tensor_test_data.plk')
 
 tensor_test_data = joblib.load('tensor_test_data.plk')
+test_loader = DataLoader(tensor_test_data.to(device), shuffle=False, batch_size=16)
 
-outputs = model(tensor_test_data)
-joblib.dump(outputs, 'output.plk')
-print(outputs)
+full_outputs = []
+for num_batch, batch in enumerate(test_loader):
+    print(f'Batch {num_batch+1}/{len(test_loader)}')
+    outputs = model(batch)
+    output_labels = torch.argmax(outputs.squeeze(), dim=-1)
+    for labeled_seq in output_labels:
+        full_outputs.append(labeled_seq)
+        print(labeled_seq)
+print(full_outputs)
+joblib.dump(full_outputs, 'output.plk')
