@@ -42,4 +42,5 @@ if TOKENIZE_TEST_DATA:
 tensor_test_data = joblib.load('tensor_test_data.plk')
 
 outputs = model(tensor_test_data)
+joblib.dump(outputs, 'output.plk')
 print(outputs)
