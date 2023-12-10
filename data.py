@@ -15,7 +15,6 @@ LABELS_PATH = 'dataset/First_Phase_Release(Correction)/answer.txt'
 BATCH_SIZE = 8
 MAX_SEQ_LENGTH = 512
 
-
 # ------------------------------ RETRIEVING DATA ----------------------------- #
 def retrieveData(path, dict):
     list_file = listdir(path)
@@ -160,8 +159,9 @@ if __name__ == "__main__":
         "num_workers": 0
     }
 
-    loader = DataLoader(dataset(tensor_data, tensor_labels), **params)
+    loader = DataLoader(dataset(tensor_data, tensor_labels, mask), **params)
     joblib.dump(loader, 'loader.plk')
     joblib.dump(tensor_data, 'tensor_data.plk')
     joblib.dump(tensor_labels, 'tensor_labels.plk')
+    joblib.dump(mask, 'attention_mask.plk')
 

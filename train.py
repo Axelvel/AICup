@@ -19,7 +19,8 @@ num_labels = len(label_types)
 #train_loader = joblib.load('loader.plk')
 tensor_data = joblib.load('tensor_data.plk')
 tensor_labels = joblib.load('tensor_labels.plk')
-train_loader = DataLoader(dataset(tensor_data, tensor_labels), shuffle=True, batch_size=8)
+attention_mask = joblib.load('attention_mask.plk')
+train_loader = DataLoader(dataset(tensor_data, tensor_labels, attention_mask), shuffle=True, batch_size=8)
 
 # Hyperparameters
 LEARNING_RATE = 0.01
@@ -36,12 +37,13 @@ for epoch in range(NUM_EPOCH):
     total_loss = 0.0
     print('Epoch:', epoch+1)
     for num_batch, batch in enumerate(train_loader):
-        inputs_r, labels_r = batch['ids'], batch['targets']
+        inputs_r, labels_r, attention_mask_r = batch['ids'], batch['targets'], batch['attention_mask']
         inputs = inputs_r.to(device)
         labels = labels_r.to(device)
+        attention_mask = attention_mask_r.to(device)
         labels = labels.view(-1)
         optimizer.zero_grad()
-        outputs = model(inputs)
+        outputs = model(inputs, attention_mask)
         outputs = outputs.view(-1, num_labels)
         loss = criterion(outputs, labels)
         loss.backward()

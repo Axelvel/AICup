@@ -6,7 +6,7 @@ from torch.nn.utils.rnn import pad_sequence
 from transformers import BertTokenizer
 import joblib
 
-TOKENIZE_TEST_DATA = False
+TOKENIZE_TEST_DATA = True
 
 MAX_SEQ_LENGTH = 512
 
@@ -36,19 +36,23 @@ if TOKENIZE_TEST_DATA:
     print('Padding data')
     padded_data = pad_sequence([torch.tensor(seq) for seq in truncated_data], batch_first=True)
     tensor_test_data = padded_data.type(torch.long)
+    mask = (tensor_test_data != 0)
     print('Padded:', padded_data)
     print('Tensor:', tensor_test_data)
     print('Shape:', tensor_test_data.shape)
 
     joblib.dump(tensor_test_data, 'tensor_test_data.plk')
+    joblib.dump(mask, 'test_attention_mask.plk')
 
 tensor_test_data = joblib.load('tensor_test_data.plk')
-test_loader = DataLoader(tensor_test_data.to(device), shuffle=False, batch_size=16)
+test_attention_mask = joblib.load('test_attention_mask.plk')
+test_dataset = TensorDataset(tensor_test_data.to(device), test_attention_mask.to(device))
+test_loader = DataLoader(test_dataset, shuffle=False, batch_size=16)
 
 full_outputs = []
-for num_batch, batch in enumerate(test_loader):
+for num_batch, (inputs, attention_mask) in enumerate(test_loader):
     print(f'Batch {num_batch+1}/{len(test_loader)}')
-    outputs = model(batch)
+    outputs = model(inputs, attention_mask)
     output_labels = torch.argmax(outputs.squeeze(), dim=-1)
     for labeled_seq in output_labels:
         full_outputs.append(labeled_seq)
