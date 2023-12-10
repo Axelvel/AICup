@@ -6,7 +6,10 @@ from torch.nn.utils.rnn import pad_sequence
 from transformers import BertTokenizer
 import joblib
 
-TOKENIZE_TEST_DATA = True
+TOKENIZE_TEST_DATA = False
+GENERATE_OUTPUT = False
+
+
 
 MAX_SEQ_LENGTH = 512
 
@@ -44,18 +47,49 @@ if TOKENIZE_TEST_DATA:
     joblib.dump(tensor_test_data, 'tensor_test_data.plk')
     joblib.dump(mask, 'test_attention_mask.plk')
 
-tensor_test_data = joblib.load('tensor_test_data.plk')
-test_attention_mask = joblib.load('test_attention_mask.plk')
-test_dataset = TensorDataset(tensor_test_data.to(device), test_attention_mask.to(device))
-test_loader = DataLoader(test_dataset, shuffle=False, batch_size=16)
+if GENERATE_OUTPUT:
+    tensor_test_data = joblib.load('tensor_test_data.plk')
+    test_attention_mask = joblib.load('test_attention_mask.plk')
+    test_dataset = TensorDataset(tensor_test_data.to(device), test_attention_mask.to(device))
+    test_loader = DataLoader(test_dataset, shuffle=False, batch_size=16)
 
-full_outputs = []
-for num_batch, (inputs, attention_mask) in enumerate(test_loader):
-    print(f'Batch {num_batch+1}/{len(test_loader)}')
-    outputs = model(inputs, attention_mask)
-    output_labels = torch.argmax(outputs.squeeze(), dim=-1)
-    for labeled_seq in output_labels:
-        full_outputs.append(labeled_seq)
-        print(labeled_seq)
-print(full_outputs)
-joblib.dump(full_outputs, 'output.plk')
+    full_outputs = []
+    for num_batch, (inputs, attention_mask) in enumerate(test_loader):
+        print(f'Batch {num_batch+1}/{len(test_loader)}')
+        outputs = model(inputs, attention_mask)
+        output_labels = torch.argmax(outputs.squeeze(), dim=-1)
+        for labeled_seq in output_labels:
+            full_outputs.append(labeled_seq)
+            print(labeled_seq)
+    print(full_outputs)
+    joblib.dump(full_outputs, 'output.plk')
+
+# print('Loading output tensors')
+# output = joblib.load('output.plk')
+# print(len(output))
+
+
+def save_tensors_to_txt(filename, tensors):
+    with open(filename, 'w', encoding='utf-8') as f:
+        for tensor in tensors:
+            array = tensor.cpu().numpy()
+            for value in array:
+                f.write(str(value) + ' ')
+            f.write('\n')
+
+# save_tensors_to_txt("output.txt", output)
+
+def load_data_from_txt(filename):
+    data = []
+    with open(filename, 'r') as f:
+        for line in f:
+            values = []
+            for value_str in line.strip().split(' '):
+                value = int(value_str)
+                values.append(value)
+            data.append(values)
+    return data
+
+
+output_data = load_data_from_txt("output.txt")
+print(f"Loaded data: {output_data}")
