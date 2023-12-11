@@ -23,8 +23,8 @@ attention_mask = joblib.load('attention_mask.plk')
 train_loader = DataLoader(dataset(tensor_data, tensor_labels, attention_mask), shuffle=True, batch_size=8)
 
 # Hyperparameters
-LEARNING_RATE = 0.01
-NUM_EPOCH = 3
+LEARNING_RATE = 1e-4
+NUM_EPOCH = 1
 
 OUTPUT_SIZE = num_labels
 
@@ -57,7 +57,7 @@ for epoch in range(NUM_EPOCH):
 MODEL_PATH = 'models/privacy-model.pt'
 
 # Classic model export
-torch.save(model, MODEL_PATH)
+#torch.save(model, MODEL_PATH)
 torch.save(model.state_dict(), MODEL_PATH)
 
 # Exporting model to Torchscript

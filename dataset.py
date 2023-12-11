@@ -14,10 +14,6 @@ class dataset(Dataset):
             "targets": self.target[index],
             "attention_mask": self.attention_mask[index]
         }
-    
+
     def __len__(self):
         return self.len
-    
-    #TODO: Add collate function
-    def collate_fn(self, items: list):
-        pass

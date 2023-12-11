@@ -43,7 +43,27 @@ def retrieveData(path, dict):
                 file_labels.append("[SEP]")
         items.append(file_items)
         labels.append(file_labels)
-    return items,labels
+    return items, labels
+
+# Only for testing on new dataset
+def fetchData(path):
+    list_file = listdir(path)
+    dataset = []
+
+    for file in list_file:
+        file_data = ["[CLS]"]
+        with open(path + file) as f:
+            lines = f.readlines()
+        for line in lines:
+            if line != "\n":
+                splitted = line.split()
+                for word in splitted:
+                    file_data.append(word)
+            file_data.append("[SEP]")
+        dataset.append(file_data)
+
+    return dataset
+
 
 # Creating label dict
 
@@ -120,7 +140,7 @@ def truncate_sequences(data, labels, max_seq_length):
 
 
 if __name__ == "__main__":
-    
+
     labels_types, train_labels_dict = get_labels_types(LABELS_PATH)
 
     data, labels = retrieveData(FIRST_DATASET_PATH, train_labels_dict)
@@ -131,6 +151,9 @@ if __name__ == "__main__":
             flat_label.append(word)
     label2id = {k: v for v, k in enumerate(list(set(flat_label)))}
     id2label = {v: k for v, k in enumerate(list(set(flat_label)))}
+
+    joblib.dump(label2id, 'label2id.plk')
+    joblib.dump(id2label, 'id2label.plk')
 
     tk_data, tk_labels = tokenize_and_preserve_labels(data, labels, BertTokenizer.from_pretrained('bert-base-uncased'))
 
@@ -146,9 +169,6 @@ if __name__ == "__main__":
     padded_data = pad_sequence([torch.tensor(seq) for seq in truncated_data], batch_first=True)
     tensor_data = padded_data.type(torch.long)
     mask = (tensor_data != 0)
-    print('Padded:', padded_data)
-    #print('Tensor:', tensor_data)
-    print('Shape:', tensor_data.shape)
 
     padded_labels = pad_sequence([torch.tensor(seq) for seq in truncated_labels], batch_first=True)
     tensor_labels = padded_labels.type(torch.long)
@@ -164,4 +184,3 @@ if __name__ == "__main__":
     joblib.dump(tensor_data, 'tensor_data.plk')
     joblib.dump(tensor_labels, 'tensor_labels.plk')
     joblib.dump(mask, 'attention_mask.plk')
-
