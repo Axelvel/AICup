@@ -162,6 +162,24 @@ def month_assumption(date, raw):
             
     return(total_date,total_raw)
             
+def check_for_hour(string, starting_point, raw):
+
+    if " at " in string[starting_point+len(raw):starting_point+len(raw)+10] and any(char.isdigit() for char in string[starting_point+len(raw)+4:starting_point+len(raw)+10]):
+        raw_hour = string[starting_point+len(raw)+4:starting_point+len(raw)+10]
+        hour_as_int = [int(char) for char in raw_hour if char.isdigit()]
+
+        if len(hour_as_int) == 2:
+            hour_as_int+= [0,0]
+        elif len(hour_as_int) == 3:
+            hour_as_int = [0]+hour_as_int
+
+        if "p" in raw_hour:
+            hour_as_int[0]+=1
+            hour_as_int[1]+=2
+
+        return (f"T{hour_as_int[0]}{hour_as_int[1]}:{hour_as_int[2]}{hour_as_int[3]}"),string[starting_point+len(raw):starting_point+len(raw)+10]
+    return "",""
+
             
 max = 2063
 min = 1970
@@ -196,9 +214,12 @@ with open("./date.txt","w") as f:
                 with open(FIRST_DATASET_PATH + dir[number],"r") as g:
                     checklines = g.read()
                     x = checklines.rfind(raw_item)
-                    
+
             splitted = item.split("/")
             if splitted[1]!="00" and splitted[0]!="00":
                 item = splitted[2]+"-"+splitted[1]+"-"+splitted[0]
-                f.write(f"{dir[number][:-4]}  DATE    {x}   {x+len(raw_item)}   {raw_item}  {item}")
+                
+                hour,raw_hour = check_for_hour(checklines, x, raw_item)
+
+                f.write(f"{dir[number][:-4]}  DATE    {x}   {x+len(raw_item)+len(raw_hour)}   {raw_item+raw_hour.strip()}  {item}{hour}")
                 f.write("\n")
