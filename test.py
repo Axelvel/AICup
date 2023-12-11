@@ -10,7 +10,7 @@ import numpy as np
 from copy import deepcopy
 
 
-TOKENIZE_TEST_DATA = True
+TOKENIZE_TEST_DATA = False
 GENERATE_OUTPUT = True
 
 MAX_SEQ_LENGTH = 512
@@ -69,7 +69,7 @@ if GENERATE_OUTPUT:
         output_labels = torch.argmax(outputs.squeeze(), dim=-1)
         for labeled_seq in output_labels:
             full_outputs.append(labeled_seq)
-            print(labeled_seq)
+            #print(labeled_seq)
             # converted_array = [id2label.get(x) for x in labeled_seq.cpu().numpy()]
             # labeled_output.append(converted_array)
             # print(labeled_seq)
