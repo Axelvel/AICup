@@ -8,5 +8,6 @@ LABELS_PATH = 'dataset/First_Phase_Release(Correction)/answer.txt'
 
 if __name__ == '__main__':
     print('Torch version: ', torch.__version__)
-    train_data = retrieveData(FIRST_DATASET_PATH)
-    train_labels_dict = create_labels_dict(LABELS_PATH)
+    # Launch data.py to load and tokenize the dataset
+    # Launch train.py to train the model
+    # Launch test.py to test on the model on eval dataset and generate the answer.txt
