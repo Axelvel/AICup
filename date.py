@@ -1,6 +1,6 @@
 from os import listdir
 
-FIRST_DATASET_PATH = 'dataset/opendid_valid/opendid_test/'
+FIRST_DATASET_PATH = 'dataset/validation_dataset/Validation_Release/'
 
 def remove_side_char(item):
     while item[0].isdigit() == False:
@@ -221,5 +221,5 @@ with open("./date.txt","w") as f:
                 
                 hour,raw_hour = check_for_hour(checklines, x, raw_item)
 
-                f.write(f"{dir[number][:-4]}  DATE    {x}   {x+len(raw_item)+len(raw_hour)}   {raw_item+raw_hour.strip()}  {item}{hour}")
+                f.write(f"{dir[number][:-4]}    DATE    {x}   {x+len(raw_item)+len(raw_hour)}   {raw_item+raw_hour.strip()}  {item}{hour}")
                 f.write("\n")
